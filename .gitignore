@@ -1,3 +1,5 @@
+*.key
+.nexmo-app
 # Logs
 logs
 *.log
