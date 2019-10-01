@@ -75,31 +75,27 @@ app.get("/order/:username", (req, res) => {
         o => o.name === conv_name
       );
       console.log("DEBUG: conversation.uuid", conversation.uuid);
-      nexmo.conversations.members.add(
-        conversation.uuid,
-        {
-          action: "join",
-          user_name: username,
-          channel: {
-            type: "app"
-          }
-        },
-        (error, member) => {
-          if (error) console.error(error);
-          if (member) {
-            console.log("member added...", member.id);
-            // send custom event (need `member.id`)
-            nexmo.conversations.events.create(conversation.uuid, {
-              type: "custom:order-confirm-event",
-              from: member.id,
-              body: {
-                text: order.text,
-                id: order.id
-              }
-            });
-          }
+      // get member id from a conversation for username (there will be multiple members)
+      nexmo.conversations.get(conversation.uuid, (error, result) => {
+        if (error) {
+          console.error(error);
+        } else {
+          console.log(result);
+          let member = result.members.find(
+            o => o.name === username && o.state === "JOINED"
+          );
+          console.log("DEBUG: member id: ", member.member_id);
+          // send custom event (need `member.id`)
+          nexmo.conversations.events.create(conversation.uuid, {
+            type: "custom:order-confirm-event",
+            from: member.member_id,
+            body: {
+              text: order.text,
+              id: order.id
+            }
+          });
         }
-      ); // end member.add
+      });
     }
   });
   res.status(200).end();
@@ -120,6 +116,22 @@ app.get("/user/:username", (req, res) => {
           if (error) console.error(error);
           if (conversation) {
             console.log("Conversation created: ", conversation.id);
+            nexmo.conversations.members.add(
+              conversation.id,
+              {
+                action: "join",
+                user_name: username,
+                channel: {
+                  type: "app"
+                }
+              },
+              (error, member) => {
+                if (error) console.error(error);
+                if (member) {
+                  console.log("member added...", member.id);
+                }
+              }
+            ); // end member.add
           } // end if conversation
         } // end callback body
       ); // end conversations.create
