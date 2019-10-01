@@ -1,0 +1,23 @@
+{
+  "name": "sendinblue-use-case",
+  "version": "1.0.0",
+  "description": "TBD",
+  "main": "client.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nexmo-community/sendinblue-use-case.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nexmo-community/sendinblue-use-case/issues"
+  },
+  "homepage": "https://github.com/nexmo-community/sendinblue-use-case#readme",
+  "dependencies": {
+    "dotenv": "^8.1.0"
+  }
+}

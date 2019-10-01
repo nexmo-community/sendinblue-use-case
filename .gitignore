@@ -1,5 +1,7 @@
+tools/*
 *.key
 .nexmo-app
+.env
 # Logs
 logs
 *.log

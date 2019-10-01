@@ -1,21 +1,20 @@
 "use strict";
+
+require("dotenv").config({
+  path: __dirname + "/.env"
+});
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
 const port = 9000; // change port number as required
-let convID = null;
-
-const API_KEY = "...";
-const API_SECRET = "...";
-const APP_ID = "43ff2672-d734-406c-b26c-82c76bf7af82";
-const PRIV_KEY_PATH = "private.key";
 
 const Nexmo = require("nexmo");
 var nexmo = new Nexmo({
-  apiKey: API_KEY,
-  apiSecret: API_SECRET,
-  applicationId: APP_ID,
-  privateKey: PRIV_KEY_PATH
+  apiKey: process.env.NEXMO_API_KEY,
+  apiSecret: process.env.NEXMO_API_SECRET,
+  applicationId: process.env.NEXMO_APPLICATION_ID,
+  privateKey: process.env.NEXMO_APPLICATION_PRIVATE_KEY_PATH
 });
 
 const acl = {
@@ -36,7 +35,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // user database
-let users = ["tonyb", "fred"];
+let users = ["client", "agent"];
 
 // checks if user in database
 function authenticate(username) {
@@ -49,52 +48,52 @@ function authenticate(username) {
 }
 
 function genJWT(username) {
-  const jwt = Nexmo.generateJwt(PRIV_KEY_PATH, {
-    application_id: APP_ID,
+  const jwt = Nexmo.generateJwt(process.env.NEXMO_APPLICATION_PRIVATE_KEY_PATH, {
+    application_id: process.env.NEXMO_APPLICATION_ID,
     sub: username,
     exp: new Date().getTime() + 86400,
     acl: acl
   });
-
   return jwt;
 }
 
-app.get("/createConversation/:name", (req, res) => {
-  console.log("/createConversation/:name");
-  let name = req.params.name;
-  // create a conversation and display conversation ID
-   nexmo.conversations.create(
-    {
-      name: name,
-      display_name: "Testing Conversation"
-    }, function(error, data) {
-    if (error) {
-      console.error(error);
-      res.status(400).end();
-    } else {
-      convID = data.id; // store in server
-      res.json(data.id);
-    }
-  });
-});
 
-app.get("/getConversationID", (req, res) => {
-  console.log("/getConversation");
-  res.json(convID);
-});
 
 app.get("/login/:user", (req, res) => {
-  console.log("/login");
-  console.log(req.params.user);
-  let jwt = authenticate(req.params.user);
-  if (!jwt) {
-    console.log("Error: user not found.");
-    res.status(404).end();
-    return; // does this make sense?
-  }
-  console.log("User found");
-  res.json(jwt);
-});
+  let username = req.params.user;
+  console.log("User: ", username);
+  let jwt = authenticate(username);
+  if (jwt) {
+    nexmo.users.create({ name: username }, (error, user) => {
+      if (error) console.error(error);
+      if (user) {
+        nexmo.conversations.create(
+          { name: "send-in-blue-" + username, display_name: "Client Chat" },
+          (error, conversation) => {
+            if (error) console.error(error);
+            if (conversation) {
+              nexmo.conversations.members.add(
+                conversation.id,
+                {
+                  action: "join",
+                  user_id: user.id,
+                  channel: {
+                    type: "app"
+                  }
+                },
+                (error, member) => {
+                  if (error) console.error(error);
+                  console.log("member added");
+                }
+              ); // end member.add
+            } // end if conversation
+          }
+        ); // end conversations.create
+      } // end if user
+    }); // end nexmo.users.create
+  } // end if jwt
+  res.status(200).end();
+}); //end app.get
 
 app.post("/webhooks/rtcevent", (req, res) => {
   console.log("RTC_EVENT:");
