@@ -31,10 +31,6 @@ const acl = {
   }
 };
 
-let users = {}; // user database
-let member_obj = null;
-let conversation_obj = null;
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -68,19 +64,42 @@ app.get("/order/:username", (req, res) => {
   // send confirmation email (using sendinblue)
   console.log("send confirmation email");
 
-  // get user details
-  let user = arr.find(o => o.username === username);
-  console.log("username: == ", user.username);
-  console.log("conv: == ", conversation_obj.id);
-  console.log("member: == ", member_obj.id);
-
-  // send custom event (need `member.id`)
-  nexmo.conversations.events.create(user.conversation_id, {
-    type: "custom:order-confirm-event",
-    from: user.member_id,
-    body: {
-      text: order.text,
-      id: order.id
+  let conv_name = "send-in-blue-" + username;
+  console.log("Conv_name: ", conv_name);
+  // we have conversation name so get the ID
+  nexmo.conversations.get({}, (error, result) => {
+    if (error) console.error(error);
+    if (result) {
+      console.log(result._embedded.conversations);
+      let conversation = result._embedded.conversations.find(
+        o => o.name === conv_name
+      );
+      console.log("DEBUG: conversation.uuid", conversation.uuid);
+      nexmo.conversations.members.add(
+        conversation.uuid,
+        {
+          action: "join",
+          user_name: username,
+          channel: {
+            type: "app"
+          }
+        },
+        (error, member) => {
+          if (error) console.error(error);
+          if (member) {
+            console.log("member added...", member.id);
+            // send custom event (need `member.id`)
+            nexmo.conversations.events.create(conversation.uuid, {
+              type: "custom:order-confirm-event",
+              from: member.id,
+              body: {
+                text: order.text,
+                id: order.id
+              }
+            });
+          }
+        }
+      ); // end member.add
     }
   });
   res.status(200).end();
@@ -88,7 +107,7 @@ app.get("/order/:username", (req, res) => {
 
 // create user and corresponding convo and add member while we're at it
 app.get("/user/:username", (req, res) => {
-  let username = req.params.username;  
+  let username = req.params.username;
   // create user
   nexmo.users.create({ name: username }, (error, user) => {
     if (error) console.error(error);
@@ -100,24 +119,7 @@ app.get("/user/:username", (req, res) => {
         (error, conversation) => {
           if (error) console.error(error);
           if (conversation) {
-            conversation_obj = conversation;
-            nexmo.conversations.members.add(
-              conversation.id,
-              {
-                action: "join",
-                user_name: username,
-                channel: {
-                  type: "app"
-                }
-              },
-              (error, member) => {
-                if (error) console.error(error);
-                if (member){ 
-                  console.log("member added...", member);
-                  member_obj = member; 
-                }
-              }
-            ); // end member.add
+            console.log("Conversation created: ", conversation.id);
           } // end if conversation
         } // end callback body
       ); // end conversations.create
