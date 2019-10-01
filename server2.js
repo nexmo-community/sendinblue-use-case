@@ -31,6 +31,10 @@ const acl = {
   }
 };
 
+let users = {}; // user database
+let member_obj = null;
+let conversation_obj = null;
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -47,37 +51,78 @@ function genJWT(username) {
   return jwt;
 }
 
-function getValidUsersWrapper() {
-  return new Promise(resolve => {
-    nexmo.users.get({}, (error, users) => {
-      if (error) {
-        console.error(error);
-      } else {
-        return users;
-      }
-    });
-  });
-}
+// create order
+app.get("/order/:username", (req, res) => {
+  // code that checks user account
+  let username = req.params.username;
+  console.log("Order being created for user: ", username);
 
-async function getValidUsers(){
-  return await getValidUsersWrapper();
-}
+  // set order details (probably would have order_id too)
+  let order = {};
+  order.text =
+    "Dear " +
+    username +
+    ", You purchased a widget for $4.99! Thanks for your order!";
+  order.id = 1234;
 
-let users = getValidUsers();
-console.log("AWAIT: --> ", users);
+  // send confirmation email (using sendinblue)
+  console.log("send confirmation email");
 
-function getUserId(users, username) {
-  return users.find(o => o.name === username);
-}
+  // get user details
+  let user = arr.find(o => o.username === username);
+  console.log("username: == ", user.username);
+  console.log("conv: == ", conversation_obj.id);
+  console.log("member: == ", member_obj.id);
 
-// create user
-app.get("/user/:username", (req, res) => {
-  nexmo.users.create({ name: req.params.username }, (error, user) => {
-    if (error) console.error(error);
-    if (user) {
-      console.log("User created: ", user.id);
+  // send custom event (need `member.id`)
+  nexmo.conversations.events.create(user.conversation_id, {
+    type: "custom:order-confirm-event",
+    from: user.member_id,
+    body: {
+      text: order.text,
+      id: order.id
     }
   });
+  res.status(200).end();
+});
+
+// create user and corresponding convo and add member while we're at it
+app.get("/user/:username", (req, res) => {
+  let username = req.params.username;  
+  // create user
+  nexmo.users.create({ name: username }, (error, user) => {
+    if (error) console.error(error);
+    if (user) {
+      console.log("User: ", user.id);
+      // create support conversation for user
+      nexmo.conversations.create(
+        { name: "send-in-blue-" + username, display_name: "Client Chat" },
+        (error, conversation) => {
+          if (error) console.error(error);
+          if (conversation) {
+            conversation_obj = conversation;
+            nexmo.conversations.members.add(
+              conversation.id,
+              {
+                action: "join",
+                user_name: username,
+                channel: {
+                  type: "app"
+                }
+              },
+              (error, member) => {
+                if (error) console.error(error);
+                if (member){ 
+                  console.log("member added...", member);
+                  member_obj = member; 
+                }
+              }
+            ); // end member.add
+          } // end if conversation
+        } // end callback body
+      ); // end conversations.create
+    } // end callback body
+  }); // end user create
   res.status(200).end();
 });
 
@@ -85,31 +130,6 @@ app.get("/user/:username", (req, res) => {
 app.get("/login/:username", (req, res) => {
   let username = req.params.username;
   console.log("User: ", username);
-  let jwt = genJWT(username);
-  if (jwt) {
-    nexmo.conversations.create(
-      { name: "send-in-blue-" + username, display_name: "Client Chat" },
-      (error, conversation) => {
-        if (error) console.error(error);
-        if (conversation) {
-          nexmo.conversations.members.add(
-            conversation.id,
-            {
-              action: "join",
-              user_id: getUserId(username),
-              channel: {
-                type: "app"
-              }
-            },
-            (error, member) => {
-              if (error) console.error(error);
-              console.log("member added");
-            }
-          ); // end member.add
-        } // end if conversation
-      }
-    ); // end conversations.create
-  } // end if jwt
   res.status(200).end();
 }); //end app.get
 
