@@ -19,6 +19,7 @@
   "homepage": "https://github.com/nexmo-community/sendinblue-use-case#readme",
   "dependencies": {
     "dotenv": "^8.1.0",
+    "nexmo": "^2.5.4-beta-1",
     "nexmo-client": "^6.0.1"
   }
 }
