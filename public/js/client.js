@@ -21,13 +21,14 @@ function logIntoConversation(id, userToken) {
     .catch(console.error);
 }
 
-let username = document.getElementById("username");
-let conv_id = document.getElementById("conv_id");
-let order_id = document.getElementById("order_id");
-console.log(username.innerHTML);
-console.log(conv_id.innerHTML);
-console.log(order_id.innerHTML);
-console.log(jwt.innerHTML);
+let username = document.getElementById("username").innerHTML;
+let conv_id = document.getElementById("conv_id").innerHTML;
+let order_id = document.getElementById("order_id").innerHTML;
+let jwt = document.getElementById("jwt").innerHTML;
+console.log(username);
+console.log(conv_id);
+console.log(order_id);
+console.log(jwt);
 
 //let jwt = genJWT(username);
-//logIntoConversation(conv_id, jwt);
+logIntoConversation(conv_id, jwt);
