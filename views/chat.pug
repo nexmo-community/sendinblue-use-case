@@ -11,13 +11,14 @@ html
         p(hidden id="jwt")= jwt
         hr
         section(id="messages")
-            h2(id="sessionName") Session Name
-            div(id="messageFeed") Message feed
+            h2(id="sessionName")
+            div(id="messageFeed")
             div
-                textarea(id="messageTextArea") type your message here...
+                textarea(id="messageTextarea") type your message here...
                 button(id="send") Send
                 div(id="status") Status
 
     script(src='/modules/nexmoClient.js') 
+    script(src='/moment/moment.js')     
     script(src='/js/client.js') 
 

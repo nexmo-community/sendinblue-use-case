@@ -33,11 +33,12 @@ const acl = {
   }
 };
 
+app.set('view engine', 'pug');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.set('view engine', 'pug');
 app.use(express.static('public'))
 app.use('/modules', express.static('node_modules/nexmo-client/dist/'));
+app.use('/moment', express.static('node_modules/moment'));
 
 // create order
 app.get("/order/:username", (req, res) => {
