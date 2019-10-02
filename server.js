@@ -61,10 +61,6 @@ app.get("/order/:username", (req, res) => {
     ", You purchased a widget for $4.99! Thanks for your order!";
   order.id = 1234;
 
-  // send confirmation email (using sendinblue)
-  // must contain at least conversation id and order id but maybe also username
-  console.log("send confirmation email");
-
   let conv_name = "send-in-blue-" + username;
   console.log("Conv_name: ", conv_name);
   // we have conversation name so get the ID
@@ -94,11 +90,19 @@ app.get("/order/:username", (req, res) => {
               text: order.text,
               id: order.id
             }
-          });
-        }
-      });
-    }
-  });
+          }); // end custom event create
+          // send confirmation email (using sendinblue)
+          // must contain at least username, conversation id and order id
+          // and order text and order id
+          console.log("send confirmation email with following details...");
+          console.log("username: ", username);
+          console.log("conversation id: ", conversation.uuid);
+          console.log("order text: ", order.text);
+          console.log("order id: ", order.id);
+        } // end else
+      }); // end get conversation
+    } // end if
+  }); // end get all conversations
   res.status(200).end();
 });
 
@@ -141,12 +145,31 @@ app.get("/user/:username", (req, res) => {
   res.status(200).end();
 });
 
+
+function convEvents(conversation) {
+  console.log(conversation.me);
+
+  // Bind to events on the conversation
+  conversation.on("member:joined", (sender, message) => {
+    console.log("conversation.on.member:joined");
+  });
+
+  // Bind to events on the conversation
+  conversation.on("text", (sender, message) => {
+    console.log("conversation.on.text");
+  });
+}
+
 // log user into conversation
-app.get("/chat/:conversation_id/:order_id", (req, res) => {
+app.get("/chat/:username/:conversation_id/:order_id", (req, res) => {
+  let username = req.params.username;
   let conv_id = req.params.conversation_id;
   let order_id = req.params.order_id;
-  console.log("Conv ID: ", conv_id);
-  console.log("Order: ", order_id);
+  console.log("Conv: ", conv_id);
+
+  // get JWT
+  let userToken = genJWT(username);
+
   new NexmoClient({
     debug: true
   })
@@ -157,8 +180,7 @@ app.get("/chat/:conversation_id/:order_id", (req, res) => {
     .then(convEvents.bind(this))
     .catch(console.error);
 
-    // TODO
-
+  // TODO
 
   res.status(200).end();
 });
@@ -169,7 +191,6 @@ app.get("/agent/:username", (req, res) => {
   console.log("User: ", username);
   res.status(200).end();
 });
-
 
 app.post("/webhooks/rtcevent", (req, res) => {
   console.log("RTC_EVENT:");
