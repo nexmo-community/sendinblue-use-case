@@ -1,0 +1,15 @@
+doctype html
+html
+    head
+        title= "This is the title"
+    body
+        h2= "Chat Screen"
+        p(id="username")= username
+        p(id="conv_id")= conv_id
+        p(id="order_id")= order_id
+        p(id="order_text")= order_text
+        p(hidden id="jwt")= jwt
+
+    script(src='/modules/nexmoClient.js') 
+    script(src='/js/client.js') 
+

@@ -1,5 +1,7 @@
 "use strict";
-require("nexmo-client");
+
+const nexmoclient = require("nexmo-client");
+
 require("dotenv").config({
   path: __dirname + "/.env"
 });
@@ -33,19 +35,9 @@ const acl = {
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-function genJWT(username) {
-  const jwt = Nexmo.generateJwt(
-    process.env.NEXMO_APPLICATION_PRIVATE_KEY_PATH,
-    {
-      application_id: process.env.NEXMO_APPLICATION_ID,
-      sub: username,
-      exp: new Date().getTime() + 86400,
-      acl: acl
-    }
-  );
-  return jwt;
-}
+app.set('view engine', 'pug');
+app.use(express.static('public'))
+app.use('/modules', express.static('node_modules/nexmo-client/dist/'));
 
 // create order
 app.get("/order/:username", (req, res) => {
@@ -149,15 +141,26 @@ app.get("/user/:username", (req, res) => {
 function convEvents(conversation) {
   console.log(conversation.me);
 
-  // Bind to events on the conversation
   conversation.on("member:joined", (sender, message) => {
     console.log("conversation.on.member:joined");
   });
 
-  // Bind to events on the conversation
   conversation.on("text", (sender, message) => {
     console.log("conversation.on.text");
   });
+}
+
+function genJWT(username) {
+  const jwt = Nexmo.generateJwt(
+    process.env.NEXMO_APPLICATION_PRIVATE_KEY_PATH,
+    {
+      application_id: process.env.NEXMO_APPLICATION_ID,
+      sub: username,
+      exp: new Date().getTime() + 86400,
+      acl: acl
+    }
+  );
+  return jwt;
 }
 
 // log user into conversation
@@ -165,24 +168,9 @@ app.get("/chat/:username/:conversation_id/:order_id", (req, res) => {
   let username = req.params.username;
   let conv_id = req.params.conversation_id;
   let order_id = req.params.order_id;
-  console.log("Conv: ", conv_id);
+  let jwt = genJWT(username);
 
-  // get JWT
-  let userToken = genJWT(username);
-
-  new NexmoClient({
-    debug: true
-  })
-    .login(userToken)
-    .then(app => {
-      return app.getConversation(conv_id);
-    })
-    .then(convEvents.bind(this))
-    .catch(console.error);
-
-  // TODO
-
-  res.status(200).end();
+  res.render('chat', { username: username, conv_id: conv_id, order_id: order_id, jwt: jwt });
 });
 
 // log agent into conversation - username is client username for now (used to identify conv id)
@@ -190,6 +178,11 @@ app.get("/agent/:username", (req, res) => {
   let username = req.params.username;
   console.log("User: ", username);
   res.status(200).end();
+});
+
+app.get("/", (req, res) => {
+  res.render('index', { title: 'Hey', 
+  message: 'Hello there!' });
 });
 
 app.post("/webhooks/rtcevent", (req, res) => {
