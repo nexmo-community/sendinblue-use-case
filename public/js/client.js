@@ -3,7 +3,6 @@
 function convEvents(conversation) {
   console.log(conversation.me);
 
-  // Bind to events on the conversation
   conversation.on("text", (sender, message) => {
     console.log("conversation.on.text");
   });
@@ -30,5 +29,10 @@ console.log(conv_id);
 console.log(order_id);
 console.log(jwt);
 
-//let jwt = genJWT(username);
 logIntoConversation(conv_id, jwt);
+
+// TODO
+// - need to improve the UI and add button and text box to send messages
+// - get all events and filter to find order with order_id
+// - get the order text from the event and display in UI
+

@@ -9,6 +9,14 @@ html
         p(id="order_id")= order_id
         p(id="order_text")= order_text
         p(hidden id="jwt")= jwt
+        hr
+        section(id="messages")
+            h2(id="sessionName")
+            div(id="messageFeed")
+        div
+            textarea(id="messageTextArea") type here...
+            button(id="send") Send
+            div(id="status") Status
 
     script(src='/modules/nexmoClient.js') 
     script(src='/js/client.js') 
