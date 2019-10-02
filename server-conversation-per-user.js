@@ -1,5 +1,5 @@
 "use strict";
-require("nexmo-client");
+
 require("dotenv").config({
   path: __dirname + "/.env"
 });
@@ -62,7 +62,6 @@ app.get("/order/:username", (req, res) => {
   order.id = 1234;
 
   // send confirmation email (using sendinblue)
-  // must contain at least conversation id and order id but maybe also username
   console.log("send confirmation email");
 
   let conv_name = "send-in-blue-" + username;
@@ -142,24 +141,11 @@ app.get("/user/:username", (req, res) => {
 });
 
 // log user into conversation
-app.get("/chat/:conversation_id/:order_id", (req, res) => {
-  let conv_id = req.params.conversation_id;
+app.get("/chat/:username/:order_id", (req, res) => {
+  let username = req.params.username;
   let order_id = req.params.order_id;
-  console.log("Conv ID: ", conv_id);
+  console.log("User: ", username);
   console.log("Order: ", order_id);
-  new NexmoClient({
-    debug: true
-  })
-    .login(userToken)
-    .then(app => {
-      return app.getConversation(conv_id);
-    })
-    .then(convEvents.bind(this))
-    .catch(console.error);
-
-    // TODO
-
-
   res.status(200).end();
 });
 
