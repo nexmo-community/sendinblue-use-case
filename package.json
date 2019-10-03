@@ -1,8 +1,8 @@
 {
   "name": "sendinblue-use-case",
   "version": "1.0.0",
-  "description": "TBD",
-  "main": "client.js",
+  "description": "Client SDK product support use case. Order confirmation email by Sendin blue. Two way message chat with support agent.",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
@@ -11,7 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/nexmo-community/sendinblue-use-case.git"
   },
-  "author": "",
+  "author": "Tony Bedford (initial test version)",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/nexmo-community/sendinblue-use-case/issues"
