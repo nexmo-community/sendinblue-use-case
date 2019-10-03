@@ -39,7 +39,6 @@ function setupButtonEvent() {
     conversation
       .sendText(messageTextarea.value)
       .then(() => {
-        eventLogger("text")();
         messageTextarea.value = "";
       })
       .catch(error => {
