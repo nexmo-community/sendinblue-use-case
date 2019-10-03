@@ -4,11 +4,20 @@ let conversation = null; // global conversation object
 
 function convEvents(conv) {
   conversation = conv; // store in global variable
-  
+
   console.log("DEBUG: --> ", conversation.me);
 
   document.getElementById("sessionName").innerHTML =
     conversation.me.user.name + "'s messages";
+
+  conversation
+    .getEvents({ event_type: "custom:order-confirm-event" })
+    .then(events_page => {
+      events_page.items.forEach(event => {
+        console.log(event);
+        order_text.innerHTML = event.body.text;
+      });
+    });
 
   // Bind to events on the conversation
   conversation.on("text", (sender, message) => {
@@ -60,6 +69,8 @@ const messageTextarea = document.getElementById("messageTextarea");
 const messageFeed = document.getElementById("messageFeed");
 const sendButton = document.getElementById("send");
 const status = document.getElementById("status");
+const order_text = document.getElementById("order_text");
+
 
 setupButtonEvent();
 logIntoConversation(conv_id, jwt);
