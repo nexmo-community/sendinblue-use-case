@@ -12,8 +12,6 @@ apiKey.apiKey = process.env.SENDINBLUE_API_KEY;
 var apiInstance = new SibApiV3Sdk.SMTPApi();
 var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); // SendSmtpEmail | Values to send a transactional email
 
-let templateId = parseInt(process.env.SENDINBLUE_TEMPLATE_ID); // MUST be an integer
-
 sendSmtpEmail = {
     sender: {
         name: process.env.SENDINBLUE_FROM_NAME,
