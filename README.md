@@ -85,7 +85,7 @@ npm start
 
 This starts up the server using `node.js`.
 
-2. Create the support agent user. Point your browser at:
+2. Create the support agent user. Point your browser at (this assumes you are using port 3000):
 
 ```
 localhost:3000/user/agent
@@ -93,7 +93,8 @@ localhost:3000/user/agent
 
 This creates the user 'agent'.
 
-> **NOTE:** This assumes you are using port 3000.
+> **IMPORTANT:** It is necessary to create the support agent before
+> any other user in this simple demo.
 
 3. Create a customer user:
 
