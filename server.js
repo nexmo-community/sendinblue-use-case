@@ -33,12 +33,12 @@ const acl = {
   }
 };
 
-app.set('view engine', 'pug');
+app.set("view engine", "pug");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'))
-app.use('/modules', express.static('node_modules/nexmo-client/dist/'));
-app.use('/moment', express.static('node_modules/moment'));
+app.use(express.static("public"));
+app.use("/modules", express.static("node_modules/nexmo-client/dist/"));
+app.use("/moment", express.static("node_modules/moment"));
 
 // create order
 app.get("/order/:username", (req, res) => {
@@ -92,6 +92,8 @@ app.get("/order/:username", (req, res) => {
           console.log("conversation id: ", conversation.uuid);
           console.log("order text: ", order.text);
           console.log("order id: ", order.id);
+          let url = "http://localhost:9000/chat/"+username+"/"+conversation.uuid+"/"+order.id;
+          console.log("link: ", url)
         } // end else
       }); // end get conversation
     } // end if
@@ -127,8 +129,26 @@ app.get("/user/:username", (req, res) => {
                 if (error) console.error(error);
                 if (member) {
                   console.log("member added...", member.id);
+                  // add agent
+                  console.log("add agent to conversation...");
+                  nexmo.conversations.members.add(
+                    conversation.id,
+                    {
+                      action: "join",
+                      user_name: "agent",
+                      channel: {
+                        type: "app"
+                      }
+                    },
+                    (error, member) => {
+                      if (error) console.error(error);
+                      if (member) {
+                        console.log("member added...", member.id);
+                      } // end if
+                    } // end callback body
+                  ); // end member.add
                 }
-              }
+              } // end callback body
             ); // end member.add
           } // end if conversation
         } // end callback body
@@ -137,7 +157,6 @@ app.get("/user/:username", (req, res) => {
   }); // end user create
   res.status(200).end();
 });
-
 
 function convEvents(conversation) {
   console.log(conversation.me);
@@ -171,7 +190,12 @@ app.get("/chat/:username/:conversation_id/:order_id", (req, res) => {
   let order_id = req.params.order_id;
   let jwt = genJWT(username);
 
-  res.render('chat', { username: username, conv_id: conv_id, order_id: order_id, jwt: jwt });
+  res.render("chat", {
+    username: username,
+    conv_id: conv_id,
+    order_id: order_id,
+    jwt: jwt
+  });
 });
 
 // log agent into conversation - username is client username for now (used to identify conv id)
@@ -182,8 +206,7 @@ app.get("/agent/:username", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.render('index', { title: 'Hey', 
-  message: 'Hello there!' });
+  res.render("index", { title: "Hey", message: "Hello there!" });
 });
 
 app.post("/webhooks/rtcevent", (req, res) => {

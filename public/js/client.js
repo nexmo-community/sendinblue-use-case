@@ -4,10 +4,11 @@ let conversation = null; // global conversation object
 
 function convEvents(conv) {
   conversation = conv; // store in global variable
+  
   console.log("DEBUG: --> ", conversation.me);
 
   document.getElementById("sessionName").innerHTML =
-  conversation.me.user.name + "'s messages";
+    conversation.me.user.name + "'s messages";
 
   // Bind to events on the conversation
   conversation.on("text", (sender, message) => {
@@ -67,3 +68,4 @@ logIntoConversation(conv_id, jwt);
 // - need to improve the UI and add button and text box to send messages
 // - get all events and filter to find order with order_id
 // - get the order text from the event and display in UI
+// - agent needs to be added to the conversation
