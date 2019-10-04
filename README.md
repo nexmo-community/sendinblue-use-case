@@ -22,7 +22,10 @@ The following assumes you have the `git` and `npm` commands available on the com
 
 ```
 npm install nexmo-cli -g
+nexmo setup NEXMO_API_KEY NEXMO_API_SECRET
 ```
+
+The latter command will update your `.nexmorc` file.
 
 2. Clone the repo:
 
