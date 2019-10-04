@@ -1,6 +1,6 @@
 # sendinblue-use-case
 
-> **STATUS** - working code. However Sendinblue interface not yet implemented and UI is basic.
+> **STATUS** - Working.
 
 ## Overview
 
@@ -15,6 +15,8 @@ about the order.
 A chat screen is loaded that contains order data (and optionally order
 and message history). Two way chat can then take place between the
 customer and a support agent.
+
+> **NOTE:** It is assumed you have both a Nexmo account and a Sendinblue account, and associated API keys and secrets.
 
 ## Installation
 
@@ -49,19 +51,24 @@ select RTC capabilities. A private key will be written out to
 directory containing the Application ID and the private key. Make a
 note of the Application ID as you will need this later.
 
-
 ## Configuration
 
 Open the `.env` file in your project directory with an editor. Set the
 following information:
 
 ``` bash
-NEXMO_APPLICATION_ID=""
-NEXMO_API_KEY=""
-NEXMO_API_SECRET=""
-NEXMO_APPLICATION_PRIVATE_KEY_PATH="private.key"
-CONVERSATION_ID=""
-PORT="3000"
+NEXMO_APPLICATION_ID=
+NEXMO_API_KEY=
+NEXMO_API_SECRET=
+NEXMO_APPLICATION_PRIVATE_KEY_PATH=private.key
+CONVERSATION_ID=
+PORT=3000
+SENDINBLUE_API_KEY=
+SENDINBLUE_FROM_NAME=
+SENDINBLUE_FROM_EMAIL=
+SENDINBLUE_TO_NAME=
+SENDINBLUE_TO_EMAIL=
+SENDINBLUE_TEMPLATE_ID=
 ```
 
 Add in your application ID from the installation section. You can
@@ -72,6 +79,14 @@ The private key file will typically be `private.key`.
 
 The Conversation ID is only used if you want to use the utilities in
 the `utils` directory.
+
+### Sendinblue configuration
+
+Most importantly you must have a Sendinblue API key.
+
+For testing this use case it is assumed you have Sendinblue "sender" information. This is the email address and name you are sending emails from. You will also want to specify a user name and email address that will receive the order confirmation emails. Usually this information would be available on a per-customer basis in the user database, but for testing convenience it is set in the environment file in this use case.
+
+The last piece of configuration information you need is the ID of the template you are using. The template is created in the Sendinblue UI. When you ahve created a template and activated it you can make a note of its ID in the UI. This is the number that is used here.
 
 ## Usage
 
@@ -103,8 +118,7 @@ localhost:3000/user/user-123
 ```
 
 This creates the user 'user-123'. You will notice from the server
-console logging that a conversation is created for the user. Please
-make a note of the Conversation ID. You will need this later.
+console logging that a conversation is created for the user. 
 
 4. Create a customer order:
 
@@ -122,30 +136,18 @@ In addition a confirmation email is sent via Sendinblue. This email
 contains a link the user would select to chat if they wanted support
 with order.
 
-5. Customer login. To simulate the customer logging into the private chat room, point your browser at:
+5. Check you have received the order email! Go to the inbox defined in your configuration to read the confirmation email. Click the link in the email.
 
-```
-localhost:3000/chat/USER/CON-ID/ORDER-ID
-```
+6. **Customer login**. You are now at the customer chat screen.
 
-> **NOTE:** This link is a little unweildy, but the URL is auto-generated for the customer.
-
-Value | Description
----- | ----
-USER | In this case 'user-123'.
-CON-ID | Is the one you recorded earlier when creating the user.
-ORDER-ID | Is also obtain from the logging, but for testing is just '1234'.
-
-6. Agent login. It is recommended you start an 'incognito' tab in your
+7. **Agent login**. It is recommended you start an 'incognito' tab in your
    browser for this step (or use a new browser instance).
 
 For simplicity the support agent logs into the chat using a method similar to the customer:
 
 ```
-localhost:3000/chat/USER/CON-ID/ORDER-ID
+localhost:3000/chat/agent/CON-ID/ORDER-ID
 ```
 
-> **NOTE:** USER would be 'agent' in this case.
-
-The user and support agent can now discuss the order.
+The user and support agent can now engage in a two-way chat messaging session.
 
