@@ -40,6 +40,47 @@ app.use(express.static("public"));
 app.use("/modules", express.static("node_modules/nexmo-client/dist/"));
 app.use("/moment", express.static("node_modules/moment"));
 
+// send email using sendinblue
+function send_email(username, order_id, order_text, url) {
+  var SibApiV3Sdk = require("sib-api-v3-sdk");
+  var defaultClient = SibApiV3Sdk.ApiClient.instance;
+
+  var apiKey = defaultClient.authentications["api-key"];
+  apiKey.apiKey = process.env.SENDINBLUE_API_KEY;
+
+  var apiInstance = new SibApiV3Sdk.SMTPApi();
+  var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); // SendSmtpEmail | Values to send a transactional email
+
+  sendSmtpEmail = {
+    sender: {
+      name: process.env.SENDINBLUE_FROM_NAME,
+      email: process.env.SENDINBLUE_FROM_EMAIL
+    },
+    to: [
+      {
+        name: process.env.SENDINBLUE_TO_NAME,
+        email: process.env.SENDINBLUE_TO_EMAIL
+      }
+    ],
+    templateId: parseInt(process.env.SENDINBLUE_TEMPLATE_ID),
+    params: {
+      order_id: order_id,
+      order_text: order_text,
+      url: url,
+      name: username
+    }
+  };
+
+  apiInstance.sendTransacEmail(sendSmtpEmail).then(
+    function(data) {
+      console.log("API called successfully. Returned data: " + data);
+    },
+    function(error) {
+      console.error(error);
+    }
+  );
+}
+
 // create order
 app.get("/order/:username", (req, res) => {
   // code that checks user account
@@ -94,6 +135,7 @@ app.get("/order/:username", (req, res) => {
           console.log("order id: ", order.id);
           let url = "http://localhost:9000/chat/"+username+"/"+conversation.uuid+"/"+order.id;
           console.log("link: ", url)
+          send_email(username, order.id, order.text, url);
         } // end else
       }); // end get conversation
     } // end if
