@@ -1,6 +1,6 @@
 # sendinblue-use-case
 
-> **STATUS** - Working.
+> **STATUS** - Working, but needs code review.
 
 ## Overview
 
