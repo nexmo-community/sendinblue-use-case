@@ -1,6 +1,7 @@
 "use strict";
 
 const nexmoclient = require("nexmo-client");
+const SibApiV3Sdk = require("sib-api-v3-sdk");
 
 require("dotenv").config({
   path: __dirname + "/.env"
@@ -42,16 +43,12 @@ app.use("/moment", express.static("node_modules/moment"));
 
 // send email using sendinblue
 function send_email(username, order_id, order_text, url) {
-  var SibApiV3Sdk = require("sib-api-v3-sdk");
   var defaultClient = SibApiV3Sdk.ApiClient.instance;
-
   var apiKey = defaultClient.authentications["api-key"];
   apiKey.apiKey = process.env.SENDINBLUE_API_KEY;
-
   var apiInstance = new SibApiV3Sdk.SMTPApi();
-  var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); // SendSmtpEmail | Values to send a transactional email
 
-  sendSmtpEmail = {
+  var sendSmtpEmail = {
     sender: {
       name: process.env.SENDINBLUE_FROM_NAME,
       email: process.env.SENDINBLUE_FROM_EMAIL
@@ -81,19 +78,15 @@ function send_email(username, order_id, order_text, url) {
   );
 }
 
-// create order
-app.get("/order/:username", (req, res) => {
-  // code that checks user account
-  let username = req.params.username;
+// create order /order/:username
+app.post("/order/:username", (req, res) => {
+  let username = req.body.username;
   console.log("Order being created for user: ", username);
 
-  // set order details (probably would have order_id too)
-  let order = {};
-  order.text =
-    "Dear " +
-    username +
-    ", You purchased a widget for $4.99! Thanks for your order!";
-  order.id = 1234;
+  let order = {
+    text: `Dear ${username}, You purchased a widget for $4.99! Thanks for your order!`,
+    id: 1234
+  };
 
   let conv_name = "send-in-blue-" + username;
   console.log("Conv_name: ", conv_name);
@@ -109,34 +102,24 @@ app.get("/order/:username", (req, res) => {
       // get member id from a conversation for username (there will be multiple members)
       nexmo.conversations.get(conversation.uuid, (error, result) => {
         if (error) {
-          console.error(error);
-        } else {
-          console.log(result);
-          let member = result.members.find(
-            o => o.name === username && o.state === "JOINED"
-          );
-          console.log("DEBUG: member id: ", member.member_id);
-          // send custom event (need `member.id`)
-          nexmo.conversations.events.create(conversation.uuid, {
-            type: "custom:order-confirm-event",
-            from: member.member_id,
-            body: {
-              text: order.text,
-              id: order.id
-            }
-          }); // end custom event create
-          // send confirmation email (using sendinblue)
-          // must contain at least username, conversation id and order id
-          // and order text and order id
-          console.log("send confirmation email with following details...");
-          console.log("username: ", username);
-          console.log("conversation id: ", conversation.uuid);
-          console.log("order text: ", order.text);
-          console.log("order id: ", order.id);
-          let url = "http://localhost:9000/chat/"+username+"/"+conversation.uuid+"/"+order.id;
-          console.log("link: ", url)
-          send_email(username, order.id, order.text, url);
-        } // end else
+          return console.error(error);
+        }
+        console.log(result);
+        let member = result.members.find(
+          o => o.name === username && o.state === "JOINED"
+        );
+        console.log("DEBUG: member id: ", member.member_id);
+        // send custom event (need `member.id`)
+        nexmo.conversations.events.create(conversation.uuid, {
+          type: "custom:order-confirm-event",
+          from: member.member_id,
+          body: {
+            text: order.text,
+            id: order.id
+          }
+        }); // end custom event create
+        let url = `http://localhost:9000/chat/${username}/${conversation.uuid}/${order.id}`;
+        send_email(username, order.id, order.text, url);
       }); // end get conversation
     } // end if
   }); // end get all conversations
@@ -144,8 +127,9 @@ app.get("/order/:username", (req, res) => {
 });
 
 // create user and corresponding convo and add member while we're at it
-app.get("/user/:username", (req, res) => {
-  let username = req.params.username;
+app.post("/user", (req, res) => {
+  username = req.body.username;
+  console.log("DEBUG username: -->", username);
   // create user
   nexmo.users.create({ name: username }, (error, user) => {
     if (error) console.error(error);
@@ -199,18 +183,6 @@ app.get("/user/:username", (req, res) => {
   }); // end user create
   res.status(200).end();
 });
-
-function convEvents(conversation) {
-  console.log(conversation.me);
-
-  conversation.on("member:joined", (sender, message) => {
-    console.log("conversation.on.member:joined");
-  });
-
-  conversation.on("text", (sender, message) => {
-    console.log("conversation.on.text");
-  });
-}
 
 function genJWT(username) {
   const jwt = Nexmo.generateJwt(
