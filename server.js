@@ -79,7 +79,7 @@ function send_email(username, order_id, order_text, url) {
 }
 
 // create order /order/:username
-app.post("/order/:username", (req, res) => {
+app.post("/order", (req, res) => {
   let username = req.body.username;
   console.log("Order being created for user: ", username);
 
@@ -212,15 +212,8 @@ app.get("/chat/:username/:conversation_id/:order_id", (req, res) => {
   });
 });
 
-// log agent into conversation - username is client username for now (used to identify conv id)
-app.get("/agent/:username", (req, res) => {
-  let username = req.params.username;
-  console.log("User: ", username);
-  res.status(200).end();
-});
-
 app.get("/", (req, res) => {
-  res.render("index", { title: "Hey", message: "Hello there!" });
+  res.render("index", { title: "Sendinblue demo", message: "Sendinblue demo" });
 });
 
 app.post("/webhooks/rtcevent", (req, res) => {

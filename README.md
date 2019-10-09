@@ -1,6 +1,6 @@
 # sendinblue-use-case
 
-> **STATUS** - Working, but needs code review.
+> **STATUS** - Work in progress - converting to use POSTs and refactoring to use async/await.
 
 ## Overview
 
@@ -11,6 +11,14 @@ This code allows you to demonstrate a two way chat use case using the Client SDK
 2. A custom event is created when the confirmation email goes out. This is retained in the Conversation for that user.
 
 3. A chat screen is loaded that contains order data (and optionally order and message history). Two way chat can then take place between the customer and a support agent.
+
+## Methods
+
+1. `post` on `/user` - creates a user. Username is bassed in the body.
+2. `post` on `/order` - creates an order. Username of the person creating an order is passed in the body.
+3. `get` on `/chat/:username/:conversation_id/:order_id` - logs user or agent into chat room.
+
+Posts to create uses and orders can most simply be issued using Curl commands.
 
 > **NOTE:** It is assumed you have both a Nexmo account and a Sendinblue account, and associated API keys and secrets.
 
