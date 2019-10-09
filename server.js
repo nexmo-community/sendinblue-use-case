@@ -128,7 +128,7 @@ app.post("/order", (req, res) => {
 
 // create user and corresponding convo and add member while we're at it
 app.post("/user", (req, res) => {
-  username = req.body.username;
+  let username = req.body.username;
   console.log("DEBUG username: -->", username);
   // create user
   nexmo.users.create({ name: username }, (error, user) => {
