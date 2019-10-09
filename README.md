@@ -2,6 +2,10 @@
 
 > **STATUS** - Work in progress - converting to use POSTs and refactoring to use async/await.
 
+## Before you start
+
+> **NOTE:** It is assumed you have both a Nexmo account and a Sendinblue account, and associated API keys and secrets.
+
 ## Overview
 
 This code allows you to demonstrate a two way chat use case using the Client SDK and Sendinblue. The base scenario is as follows:
@@ -20,7 +24,22 @@ This code allows you to demonstrate a two way chat use case using the Client SDK
 
 Posts to create uses and orders can most simply be issued using Curl commands.
 
-> **NOTE:** It is assumed you have both a Nexmo account and a Sendinblue account, and associated API keys and secrets.
+Curl commands to create a user and a order for testing later:
+
+Create a user `user-123`:
+
+```
+curl -d "username=user-123" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/user
+```
+
+Create an order for `user-123`:
+
+```
+curl -d "username=user-123" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/order
+```
+
+> **NOTE:** Assumes port is 3000
+
 
 ## Installation
 
