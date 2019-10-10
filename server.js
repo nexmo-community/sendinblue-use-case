@@ -39,6 +39,8 @@ app.use(express.static("public"));
 app.use("/modules", express.static("node_modules/nexmo-client/dist/"));
 app.use("/moment", express.static("node_modules/moment"));
 
+//////////////////////////////////////////////////////
+
 function genJWT(username) {
   const jwt = Nexmo.generateJwt(
     process.env.NEXMO_APPLICATION_PRIVATE_KEY_PATH,
@@ -84,6 +86,53 @@ function getMember(username, conversation) {
   );
 }
 
+function createUser(username) {
+  return new Promise(function(resolve, reject) {
+    nexmo.users.create({ name: username }, (error, result) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve(result);
+    });
+  });
+}
+
+function createConversation(name, display_name) {
+  return new Promise(function(resolve, reject) {
+    nexmo.conversations.create(
+      { name: name, display_name: display_name },
+      (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      }
+    );
+  });
+}
+
+// add user to conversation(id)
+function addMember(id, username) {
+  return new Promise(function(resolve, reject) {
+    nexmo.conversations.members.add(
+      id,
+      {
+        action: "join",
+        user_name: username,
+        channel: {
+          type: "app"
+        }
+      },
+      (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+        return resolve(result);
+      }
+    );
+  });
+}
+
 // send email using sendinblue
 function send_email(username, order_id, order_text, url) {
   var defaultClient = SibApiV3Sdk.ApiClient.instance;
@@ -121,6 +170,8 @@ function send_email(username, order_id, order_text, url) {
   );
 }
 
+//////////////////////////////////////////////////////
+
 // create order /order/:username
 app.post("/order", async (req, res) => {
   let username = req.body.username;
@@ -129,9 +180,13 @@ app.post("/order", async (req, res) => {
     text: `Dear ${username}, You purchased a widget for $4.99! Thanks for your order!`,
     id: 1234
   };
- 
-  let conversations = await getConversations();
-  let conversation = await getConversation(conv_name, conversations);
+
+  let conversations = await getConversations().catch(error =>
+    console.error(error)
+  );
+  let conversation = await getConversation(conv_name, conversations).catch(
+    error => console.error(error)
+  );
   let member = getMember(username, conversation);
 
   nexmo.conversations.events.create(conversation.uuid, {
@@ -149,61 +204,22 @@ app.post("/order", async (req, res) => {
   res.status(200).end();
 });
 
-// create user and corresponding convo and add member while we're at it
-app.post("/user", (req, res) => {
+// create user and corresponding convo and add users while we're at it
+// Agent must be created first
+app.post("/user", async (req, res) => {
   let username = req.body.username;
-  console.log("DEBUG username: -->", username);
-  // create user
-  nexmo.users.create({ name: username }, (error, user) => {
-    if (error) console.error(error);
-    if (user) {
-      console.log("User: ", user.id);
-      // create support conversation for user
-      nexmo.conversations.create(
-        { name: "send-in-blue-" + username, display_name: "Client Chat" },
-        (error, conversation) => {
-          if (error) console.error(error);
-          if (conversation) {
-            console.log("Conversation created: ", conversation.id);
-            nexmo.conversations.members.add(
-              conversation.id,
-              {
-                action: "join",
-                user_name: username,
-                channel: {
-                  type: "app"
-                }
-              },
-              (error, member) => {
-                if (error) console.error(error);
-                if (member) {
-                  console.log("member added...", member.id);
-                  // add agent
-                  console.log("add agent to conversation...");
-                  nexmo.conversations.members.add(
-                    conversation.id,
-                    {
-                      action: "join",
-                      user_name: "agent",
-                      channel: {
-                        type: "app"
-                      }
-                    },
-                    (error, member) => {
-                      if (error) console.error(error);
-                      if (member) {
-                        console.log("member added...", member.id);
-                      } // end if
-                    } // end callback body
-                  ); // end member.add
-                }
-              } // end callback body
-            ); // end member.add
-          } // end if conversation
-        } // end callback body
-      ); // end conversations.create
-    } // end callback body
-  }); // end user create
+  let user = await createUser(username).catch(error => console.error(error));
+  let conversation = await createConversation(
+    "send-in-blue-" + username,
+    "The display name",
+    "Client Chat"
+  ).catch(error => console.error(error));
+  await addMember(conversation.id, username).catch(error =>
+    console.error(error)
+  );
+  await addMember(conversation.id, "agent").catch(error =>
+    console.error(error)
+  );
   res.status(200).end();
 });
 
@@ -224,6 +240,12 @@ app.get("/chat/:username/:conversation_id/:order_id", (req, res) => {
 
 app.get("/", (req, res) => {
   res.render("index", { title: "Sendinblue demo", message: "Sendinblue demo" });
+});
+
+app.post("/webhooks/rtcevent", (req, res) => {
+  console.log("RTC_EVENT:");
+  console.log(req.body);
+  res.status(200).end();
 });
 
 app.listen(port, () => console.log(`Server listening on port ${port}!`));
