@@ -134,7 +134,7 @@ function addMember(id, username) {
 }
 
 // send email using sendinblue
-function send_email(username, order_id, order_text, url) {
+async function send_email(username, order_id, order_text, url) {
   var defaultClient = SibApiV3Sdk.ApiClient.instance;
   var apiKey = defaultClient.authentications["api-key"];
   apiKey.apiKey = process.env.SENDINBLUE_API_KEY;
@@ -160,14 +160,10 @@ function send_email(username, order_id, order_text, url) {
     }
   };
 
-  apiInstance.sendTransacEmail(sendSmtpEmail).then(
-    function(data) {
-      console.log("API called successfully. Returned data: " + data);
-    },
-    function(error) {
-      console.error(error);
-    }
-  );
+  let data = await apiInstance
+    .sendTransacEmail(sendSmtpEmail)
+    .catch(error => console.error(error));
+  console.log("API called successfully. Returned data: " + data);
 }
 
 //////////////////////////////////////////////////////
