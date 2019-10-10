@@ -1,24 +1,14 @@
 "use strict";
 
-const nexmoclient = require("nexmo-client");
-const SibApiV3Sdk = require("sib-api-v3-sdk");
-
 require("dotenv").config({
   path: __dirname + "/.env"
 });
 
+const Nexmo = require("nexmo");
+const SibApiV3Sdk = require("sib-api-v3-sdk");
 const express = require("express");
 const bodyParser = require("body-parser");
-const app = express();
 const port = process.env.PORT;
-
-const Nexmo = require("nexmo");
-var nexmo = new Nexmo({
-  apiKey: process.env.NEXMO_API_KEY,
-  apiSecret: process.env.NEXMO_API_SECRET,
-  applicationId: process.env.NEXMO_APPLICATION_ID,
-  privateKey: process.env.NEXMO_APPLICATION_PRIVATE_KEY_PATH
-});
 
 const acl = {
   paths: {
@@ -34,12 +24,65 @@ const acl = {
   }
 };
 
+const nexmo = new Nexmo({
+  apiKey: process.env.NEXMO_API_KEY,
+  apiSecret: process.env.NEXMO_API_SECRET,
+  applicationId: process.env.NEXMO_APPLICATION_ID,
+  privateKey: process.env.NEXMO_APPLICATION_PRIVATE_KEY_PATH
+});
+
+const app = express();
 app.set("view engine", "pug");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use("/modules", express.static("node_modules/nexmo-client/dist/"));
 app.use("/moment", express.static("node_modules/moment"));
+
+function genJWT(username) {
+  const jwt = Nexmo.generateJwt(
+    process.env.NEXMO_APPLICATION_PRIVATE_KEY_PATH,
+    {
+      application_id: process.env.NEXMO_APPLICATION_ID,
+      sub: username,
+      exp: new Date().getTime() + 86400,
+      acl: acl
+    }
+  );
+  return jwt;
+}
+
+// get all conversations
+function getConversations() {
+  return new Promise(function(resolve, reject) {
+    nexmo.conversations.get({}, (error, result) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve(result._embedded.conversations);
+    });
+  });
+}
+
+// gets conversation object from conversation name
+function getConversation(name, conversations) {
+  return new Promise(function(resolve, reject) {
+    let conversation = conversations.find(o => o.name === name);
+    nexmo.conversations.get(conversation.uuid, (error, result) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve(result);
+    });
+  });
+}
+
+// gets a member object from a username and conversation object
+function getMember(username, conversation) {
+  return conversation.members.find(
+    o => o.name === username && o.state === "JOINED"
+  );
+}
 
 // send email using sendinblue
 function send_email(username, order_id, order_text, url) {
@@ -79,50 +122,30 @@ function send_email(username, order_id, order_text, url) {
 }
 
 // create order /order/:username
-app.post("/order", (req, res) => {
+app.post("/order", async (req, res) => {
   let username = req.body.username;
-  console.log("Order being created for user: ", username);
-
+  let conv_name = "send-in-blue-" + username;
   let order = {
     text: `Dear ${username}, You purchased a widget for $4.99! Thanks for your order!`,
     id: 1234
   };
+ 
+  let conversations = await getConversations();
+  let conversation = await getConversation(conv_name, conversations);
+  let member = getMember(username, conversation);
 
-  let conv_name = "send-in-blue-" + username;
-  console.log("Conv_name: ", conv_name);
-  // we have conversation name so get the ID
-  nexmo.conversations.get({}, (error, result) => {
-    if (error) console.error(error);
-    if (result) {
-      console.log(result._embedded.conversations);
-      let conversation = result._embedded.conversations.find(
-        o => o.name === conv_name
-      );
-      console.log("DEBUG: conversation.uuid", conversation.uuid);
-      // get member id from a conversation for username (there will be multiple members)
-      nexmo.conversations.get(conversation.uuid, (error, result) => {
-        if (error) {
-          return console.error(error);
-        }
-        console.log(result);
-        let member = result.members.find(
-          o => o.name === username && o.state === "JOINED"
-        );
-        console.log("DEBUG: member id: ", member.member_id);
-        // send custom event (need `member.id`)
-        nexmo.conversations.events.create(conversation.uuid, {
-          type: "custom:order-confirm-event",
-          from: member.member_id,
-          body: {
-            text: order.text,
-            id: order.id
-          }
-        }); // end custom event create
-        let url = `http://localhost:9000/chat/${username}/${conversation.uuid}/${order.id}`;
-        send_email(username, order.id, order.text, url);
-      }); // end get conversation
-    } // end if
-  }); // end get all conversations
+  nexmo.conversations.events.create(conversation.uuid, {
+    type: "custom:order-confirm-event",
+    from: member.member_id,
+    body: {
+      text: order.text,
+      id: order.id
+    }
+  });
+
+  let url = `http://localhost:9000/chat/${username}/${conversation.uuid}/${order.id}`;
+  send_email(username, order.id, order.text, url);
+
   res.status(200).end();
 });
 
@@ -184,19 +207,6 @@ app.post("/user", (req, res) => {
   res.status(200).end();
 });
 
-function genJWT(username) {
-  const jwt = Nexmo.generateJwt(
-    process.env.NEXMO_APPLICATION_PRIVATE_KEY_PATH,
-    {
-      application_id: process.env.NEXMO_APPLICATION_ID,
-      sub: username,
-      exp: new Date().getTime() + 86400,
-      acl: acl
-    }
-  );
-  return jwt;
-}
-
 // log user into conversation
 app.get("/chat/:username/:conversation_id/:order_id", (req, res) => {
   let username = req.params.username;
@@ -214,12 +224,6 @@ app.get("/chat/:username/:conversation_id/:order_id", (req, res) => {
 
 app.get("/", (req, res) => {
   res.render("index", { title: "Sendinblue demo", message: "Sendinblue demo" });
-});
-
-app.post("/webhooks/rtcevent", (req, res) => {
-  console.log("RTC_EVENT:");
-  console.log(req.body);
-  res.status(200).end();
 });
 
 app.listen(port, () => console.log(`Server listening on port ${port}!`));
