@@ -20,7 +20,7 @@ function convEvents(conversation) {
   document.getElementById("sessionName").innerHTML =
     conversation.me.user.name + "'s messages";
 
-  conversation.getEvents().then(events_page => {
+  conversation.getEvents({page_size: 100}).then(events_page => {
     events_page.items.forEach(event => {
       if (event.type == "order-confirm-event") {
         addOrderConfirmEvent(event);
