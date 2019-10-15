@@ -1,41 +1,62 @@
 "use strict";
 
-const messageTextarea = document.getElementById("messageTextarea");
-const messageFeed = document.getElementById("messageFeed");
-const sendButton = document.getElementById("send");
-const status = document.getElementById("status");
-const order_text = document.getElementById("order_text");
-
 let username = document.getElementById("username").innerHTML;
 let conv_id = document.getElementById("conv_id").innerHTML;
 let jwt = document.getElementById("jwt").innerHTML;
 
-/////////////////////////////////////////////////////////////////
+function addOrderConfirmEvent(event) {
+  let text = order_history.innerHTML;
+  text = text + event.body.text + '\n';
+  order_history.innerHTML = text;
+}
+
+function addText(event) {
+  let text = message_history.innerHTML;
+  text = text + event.body.text + '\n';
+  message_history.innerHTML = text;
+}
 
 function convEvents(conversation) {
   document.getElementById("sessionName").innerHTML =
     conversation.me.user.name + "'s messages";
 
-  sendButton.addEventListener("click", () => {
-    conversation
-      .sendText(messageTextarea.value)
-      .then(() => {
-        messageTextarea.value = "";
-      })
-      .catch(error => {
-        console.log(error);
-      });
+  conversation.getEvents().then(events_page => {
+    events_page.items.forEach(event => {
+      if (event.type == "order-confirm-event") {
+        addOrderConfirmEvent(event);
+      } else if (event.type == "text") {
+        addText(event);
+      }
+    });
   });
 
-  conversation
-    .getEvents({ event_type: "custom:order-confirm-event" })
-    .then(events_page => {
-      events_page.items.forEach(event => {
-        order_text.innerHTML = event.body.text;
-      });
-    });
+  send.addEventListener("click", async () => {
+    await conversation.sendText(messageTextarea.value);
+    messageTextarea.value = "";
+  });
 
-  // Bind to events on the conversation
+  messageTextarea.addEventListener("keypress", event => {
+    conversation.startTyping();
+  });
+
+  var timeout = null;
+  messageTextarea.addEventListener("keyup", event => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      conversation.stopTyping();
+    }, 500);
+  });
+
+  conversation.on("text:typing:on", data => {
+    if (data.user.id !== data.conversation.me.user.id) {
+      typing_status.innerHTML = data.user.name + " is typing...";
+    }
+  });
+
+  conversation.on("text:typing:off", data => {
+    typing_status.innerHTML = "";
+  });
+
   conversation.on("text", (sender, message) => {
     const rawDate = new Date(Date.parse(message.timestamp));
     const formattedDate = moment(rawDate).calendar();

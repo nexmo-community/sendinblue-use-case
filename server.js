@@ -161,8 +161,7 @@ async function send_email(username, order_id, order_text, url) {
   };
 
   let data = await apiInstance
-    .sendTransacEmail(sendSmtpEmail)
-    .catch(error => console.error(error));
+    .sendTransacEmail(sendSmtpEmail).catch(console.error);
   console.log("API called successfully. Returned data: " + data);
 }
 
@@ -177,12 +176,8 @@ app.post("/order", async (req, res) => {
     id: 1234
   };
 
-  let conversations = await getConversations().catch(error =>
-    console.error(error)
-  );
-  let conversation = await getConversation(conv_name, conversations).catch(
-    error => console.error(error)
-  );
+  let conversations = await getConversations();
+  let conversation = await getConversation(conv_name, conversations);
   let member = getMember(username, conversation);
 
   nexmo.conversations.events.create(conversation.uuid, {
@@ -204,18 +199,14 @@ app.post("/order", async (req, res) => {
 // Agent must be created first
 app.post("/user", async (req, res) => {
   let username = req.body.username;
-  let user = await createUser(username).catch(error => console.error(error));
+  let user = await createUser(username);
   let conversation = await createConversation(
     "send-in-blue-" + username,
     "The display name",
     "Client Chat"
-  ).catch(error => console.error(error));
-  await addMember(conversation.id, username).catch(error =>
-    console.error(error)
   );
-  await addMember(conversation.id, "agent").catch(error =>
-    console.error(error)
-  );
+  await addMember(conversation.id, username);
+  await addMember(conversation.id, "agent");
   res.status(200).end();
 });
 
