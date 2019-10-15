@@ -35,28 +35,6 @@ function convEvents(conversation) {
     messageTextarea.value = "";
   });
 
-  messageTextarea.addEventListener("keypress", event => {
-    conversation.startTyping();
-  });
-
-  var timeout = null;
-  messageTextarea.addEventListener("keyup", event => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      conversation.stopTyping();
-    }, 500);
-  });
-
-  conversation.on("text:typing:on", data => {
-    if (data.user.id !== data.conversation.me.user.id) {
-      typing_status.innerHTML = data.user.name + " is typing...";
-    }
-  });
-
-  conversation.on("text:typing:off", data => {
-    typing_status.innerHTML = "";
-  });
-
   conversation.on("text", (sender, message) => {
     const rawDate = new Date(Date.parse(message.timestamp));
     const formattedDate = moment(rawDate).calendar();
