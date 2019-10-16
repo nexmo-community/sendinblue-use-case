@@ -1,7 +1,5 @@
 # sendinblue-use-case
 
-> **STATUS** - Work in progress - converting to use POSTs and refactoring to use async/await.
-
 ## Before you start
 
 > **NOTE:** It is assumed you have both a Nexmo account and a Sendinblue account, and associated API keys and secrets.
