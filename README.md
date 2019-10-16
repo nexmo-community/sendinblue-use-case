@@ -1,6 +1,10 @@
 # sendinblue-use-case
 
-> **STATUS** - Working.
+> **STATUS** - Work in progress - converting to use POSTs and refactoring to use async/await.
+
+## Before you start
+
+> **NOTE:** It is assumed you have both a Nexmo account and a Sendinblue account, and associated API keys and secrets.
 
 ## Overview
 
@@ -12,7 +16,29 @@ This code allows you to demonstrate a two way chat use case using the Client SDK
 
 3. A chat screen is loaded that contains order data (and optionally order and message history). Two way chat can then take place between the customer and a support agent.
 
-> **NOTE:** It is assumed you have both a Nexmo account and a Sendinblue account, and associated API keys and secrets.
+## Methods
+
+1. `post` on `/user` - creates a user. Username is bassed in the body.
+2. `post` on `/order` - creates an order. Username of the person creating an order is passed in the body.
+3. `get` on `/chat/:username/:conversation_id/:order_id` - logs user or agent into chat room.
+
+Posts to create uses and orders can most simply be issued using Curl commands.
+
+Curl commands to create a user and a order for testing later:
+
+Create a user `user-123`:
+
+```
+curl -d "username=user-123" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/user
+```
+
+Create an order for `user-123`:
+
+```
+curl -d "username=user-123" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/order
+```
+
+> **NOTE:** Assumes port is 3000
 
 ## Installation
 
@@ -98,10 +124,10 @@ npm start
 
 This starts up the server using `node.js`.
 
-2. Create the support agent user. Point your browser at (assuming you are using port 3000):
+2. Create the support agent user with the following Curl command:
 
 ```
-localhost:3000/user/agent
+curl -d "username=agent" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/user
 ```
 
 This creates the user 'agent'.
@@ -111,30 +137,30 @@ This creates the user 'agent'.
 3. Create a customer user:
 
 ```
-localhost:3000/user/user-123
+curl -d "username=user-123" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/user
 ```
 
-This creates the user 'user-123'. You will notice from the server console logging that a conversation is created for the user.
+This creates the user 'user-123'.
+
+You will notice from the server console logging that a conversation is also created for the user.
 
 4. Create a customer order:
 
 ```
-localhost:3000/order/user-123
+curl -d "username=user-123" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/order
 ```
 
-This creates an order for user 'user-123'. For simplicity this is a simple pre-defined text.
+This creates an order for user 'user-123'. For simplicity this is a simple pre-defined order, rather than a shopping cart.
 
 This step will also generate a custom event of type `custom:order-confirm-event` contain the order details.
 
 In addition a confirmation email is sent via Sendinblue. This email contains a link the user would select to chat if they wanted support with order.
 
-5. Check you have received the order email! Go to the inbox defined in your configuration to read the confirmation email. 
+5. Check you have received the order email! Go to the inbox defined in your configuration to read the confirmation email.
 
-6. Click the link in the email. 
+6. Click the link in the email to log the customer into the chat screen.
 
-The customer chat screen is displayed once you have clicked on the link contained in the email.
-
-7. It is recommended you start an 'incognito' tab in your browser for this step (or use a new browser instance).
+7. Log the agent into the chat. For this step it is recommended you additionally start an 'incognito' tab in your browser (or use a new browser instance).
 
 For simplicity the support agent logs into the chat using a method similar to the customer. You can just copy the link the client clicked on in the email, and change the username in the link to `agent`:
 

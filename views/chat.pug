@@ -4,19 +4,20 @@ html
         title= "This is the title"
     body
         h2= "Chat Screen"
+        p(hidden id="jwt")= jwt
         p(id="username")= username
         p(id="conv_id")= conv_id
         p(id="order_id")= order_id
-        p(id="order_text")= order_text
-        p(hidden id="jwt")= jwt
+        hr
+        h3= "Order History"
+        div(id="order_history")= order_history
         hr
         section(id="messages")
-            h2(id="sessionName")
+            h3(id="sessionName")
             div(id="messageFeed")
             div
-                textarea(id="messageTextarea") type your message here...
+                textarea(id="messageTextarea")
                 button(id="send") Send
-                div(id="status") Status
 
     script(src='/modules/nexmoClient.js') 
     script(src='/moment/moment.js')     
