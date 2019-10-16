@@ -9,19 +9,15 @@ html
         p(id="conv_id")= conv_id
         p(id="order_id")= order_id
         hr
-        p= "Order History"
-        textarea(id="order_history")= order_history
-        p= "Previous Message History"
-        textarea(id="message_history")= message_history
+        h3= "Order History"
+        div(id="order_history")= order_history
         hr
         section(id="messages")
-            h2(id="sessionName")
+            h3(id="sessionName")
             div(id="messageFeed")
             div
                 textarea(id="messageTextarea")
                 button(id="send") Send
-                p= "Typing Status:"
-                p(id="typing_status") 
 
     script(src='/modules/nexmoClient.js') 
     script(src='/moment/moment.js')     

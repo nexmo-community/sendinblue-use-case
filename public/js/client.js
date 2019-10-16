@@ -6,26 +6,35 @@ let jwt = document.getElementById("jwt").innerHTML;
 
 function addOrderConfirmEvent(event) {
   let text = order_history.innerHTML;
-  text = text + event.body.text + '\n';
+  text = text + event.body.text + "</br>";
   order_history.innerHTML = text;
 }
 
-function addText(event) {
-  let text = message_history.innerHTML;
-  text = text + event.body.text + '\n';
-  message_history.innerHTML = text;
+function addMessage(sender, message, me) {
+  const rawDate = new Date(Date.parse(message.timestamp));
+  const formattedDate = moment(rawDate).calendar();
+  let text = "";
+  if (message.from !== me.id) {
+    text = `<span style="color:red">${sender.user.name} <span style="color:red">(${formattedDate}): <b>${message.body.text}</b></span><br>`;
+  } else {
+    text = `me (${formattedDate}): <b>${message.body.text}</b><br>`;
+  }
+  messageFeed.innerHTML = messageFeed.innerHTML + text;
 }
 
 function convEvents(conversation) {
-  document.getElementById("sessionName").innerHTML =
-    conversation.me.user.name + "'s messages";
+  sessionName.innerHTML = conversation.me.user.name + "'s Message History";
 
-  conversation.getEvents({page_size: 100}).then(events_page => {
-    events_page.items.forEach(event => {
+  conversation.getEvents({ page_size: 100 }).then(events => {
+    events.items.forEach(event => {
       if (event.type == "order-confirm-event") {
         addOrderConfirmEvent(event);
       } else if (event.type == "text") {
-        addText(event);
+        addMessage(
+          conversation.members.get(event.from),
+          event,
+          conversation.me
+        );
       }
     });
   });
@@ -35,16 +44,8 @@ function convEvents(conversation) {
     messageTextarea.value = "";
   });
 
-  conversation.on("text", (sender, message) => {
-    const rawDate = new Date(Date.parse(message.timestamp));
-    const formattedDate = moment(rawDate).calendar();
-    let text = "";
-    if (message.from !== conversation.me.id) {
-      text = `<span style="color:red">${sender.user.name} <span style="color:red">(${formattedDate}): <b>${message.body.text}</b></span><br>`;
-    } else {
-      text = `me (${formattedDate}): <b>${message.body.text}</b><br>`;
-    }
-    messageFeed.innerHTML = messageFeed.innerHTML + text;
+  conversation.on("text", (sender, event) => {
+    addMessage(sender, event, conversation.me);
   });
 }
 
