@@ -16,30 +16,6 @@ This code allows you to demonstrate a two way chat use case using the Client SDK
 
 3. A chat screen is loaded that contains order data (and optionally order and message history). Two way chat can then take place between the customer and a support agent.
 
-## Methods
-
-1. `post` on `/user` - creates a user. Username is bassed in the body.
-2. `post` on `/order` - creates an order. Username of the person creating an order is passed in the body.
-3. `get` on `/chat/:username/:conversation_id/:order_id` - logs user or agent into chat room.
-
-Posts to create uses and orders can most simply be issued using Curl commands.
-
-Curl commands to create a user and a order for testing later:
-
-Create a user `user-123`:
-
-```
-curl -d "username=user-123" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/user
-```
-
-Create an order for `user-123`:
-
-```
-curl -d "username=user-123" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/order
-```
-
-> **NOTE:** Assumes port is 3000
-
 ## Installation
 
 The following assumes you have the `git` and `npm` commands available on the command line.
