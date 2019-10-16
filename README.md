@@ -2,17 +2,17 @@
 
 ## Before you start
 
-> **NOTE:** It is assumed you have both a Nexmo account and a Sendinblue account, and associated API keys and secrets.
+It is assumed you have both a Nexmo account and a Sendinblue account, and associated API keys and secrets.
 
 ## Overview
 
-This code allows you to demonstrate a two way chat use case using the Client SDK and Sendinblue. The base scenario is as follows:
+This code allows you to demonstrate a two way chat use case using the Client SDK and Sendinblue. The scenario is as follows:
 
 1. A user creates an order. An order confirmation email is sent to the user via [Sendinblue](https://www.sendinblue.com). The order email contains a link the user can click if he wishes to chat with an agent about the order.
 
 2. A custom event is created when the confirmation email goes out. This is retained in the Conversation for that user.
 
-3. A chat screen is loaded that contains order data (and optionally order and message history). Two way chat can then take place between the customer and a support agent.
+3. A chat screen is loaded that contains current order data, order history, and message history). Two-way messaging can then take place between the customer and a support agent.
 
 ## Installation
 
@@ -20,30 +20,33 @@ The following assumes you have the `git` and `npm` commands available on the com
 
 1. Install the Nexmo CLI:
 
-```
+``` bash
 npm install nexmo-cli -g
+```
+
+2. Update your `.nexmorc` file:
+
+``` bash
 nexmo setup NEXMO_API_KEY NEXMO_API_SECRET
 ```
 
-The latter command will update your `.nexmorc` file.
-
-2. Clone the repo:
+3. Clone the repo:
 
 ``` bash
 git clone https://github.com/nexmo-community/sendinblue-use-case.git
 ```
 
-3. Change into the cloned project directory.
+4. Change into the cloned project directory.
 
-4. Install required npm modules:
+5. Install required npm modules:
 
 ``` bash
 npm install
 ```
 
-5. Copy `example.env` to `.env`.
+6. Copy `example.env` to `.env`.
 
-6. Create a Nexmo application.
+7. Create a Nexmo application.
 
 ``` bash
 nexmo app:create
@@ -100,7 +103,7 @@ This starts up the server using `node.js`.
 
 2. Create the support agent user with the following Curl command:
 
-```
+``` bash
 curl -d "username=agent" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/user
 ```
 
@@ -110,7 +113,7 @@ This creates the user 'agent'.
 
 3. Create a customer user:
 
-```
+``` bash
 curl -d "username=user-123" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/user
 ```
 
@@ -120,7 +123,7 @@ You will notice from the server console logging that a conversation is also crea
 
 4. Create a customer order:
 
-```
+``` bash
 curl -d "username=user-123" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:3000/order
 ```
 
@@ -138,8 +141,8 @@ In addition a confirmation email is sent via Sendinblue. This email contains a l
 
 For simplicity the support agent logs into the chat using a method similar to the customer. You can just copy the link the client clicked on in the email, and change the username in the link to `agent`:
 
-```
+``` bash
 localhost:3000/chat/agent/CON-ID/ORDER-ID
 ```
 
-The user and support agent can now engage in a two-way chat messaging session.
+The user and support agent can now engage in a two-way messaging session.
