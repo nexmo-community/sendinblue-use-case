@@ -135,6 +135,9 @@ function addMember(id, username) {
 
 // send email using sendinblue
 async function send_email(username, order_id, order_text, url) {
+  console.log(
+    `Sending order email ${username}, ${order_id}, ${order_text}, ${url})`
+  );
   var defaultClient = SibApiV3Sdk.ApiClient.instance;
   var apiKey = defaultClient.authentications["api-key"];
   apiKey.apiKey = process.env.SENDINBLUE_API_KEY;
@@ -161,14 +164,20 @@ async function send_email(username, order_id, order_text, url) {
   };
 
   let data = await apiInstance
-    .sendTransacEmail(sendSmtpEmail).catch(console.error);
+    .sendTransacEmail(sendSmtpEmail)
+    .catch(console.error);
   console.log("API called successfully. Returned data: " + data);
 }
+
+process.on("unhandledRejection", function(err) {
+  console.log(err);
+});
 
 //////////////////////////////////////////////////////
 
 // create order /order/:username
 app.post("/order", async (req, res) => {
+  console.log("Creating order...");
   let username = req.body.username;
   let conv_name = "send-in-blue-" + username;
   let order = {
@@ -190,8 +199,8 @@ app.post("/order", async (req, res) => {
   });
 
   let url = `http://localhost:9000/chat/${username}/${conversation.uuid}/${order.id}`;
+  console.log(`Order URL: ${url}`);
   send_email(username, order.id, order.text, url);
-
   res.status(200).end();
 });
 
@@ -199,6 +208,7 @@ app.post("/order", async (req, res) => {
 // Agent must be created first
 app.post("/user", async (req, res) => {
   let username = req.body.username;
+  console.log(`Creating user ${username}`);
   let user = await createUser(username);
   let conversation = await createConversation(
     "send-in-blue-" + username,
@@ -207,6 +217,7 @@ app.post("/user", async (req, res) => {
   );
   await addMember(conversation.id, username);
   await addMember(conversation.id, "agent");
+  console.log(`User ${username} and Conversation ${conversation.id} created.`);
   res.status(200).end();
 });
 
@@ -216,6 +227,8 @@ app.get("/chat/:username/:conversation_id/:order_id", (req, res) => {
   let conv_id = req.params.conversation_id;
   let order_id = req.params.order_id;
   let jwt = genJWT(username);
+
+  console.log(`Logging into chat. User: ${username} Conversation: ${conv_id}`);
 
   res.render("chat", {
     username: username,
