@@ -89,6 +89,30 @@ For testing this use case it is assumed you have Sendinblue "sender" information
 
 The last piece of configuration information you need is the ID of the template you are using. The template is created in the Sendinblue UI. When you ahve created a template and activated it you can make a note of its ID in the UI. This is the number that is used here.
 
+Sample template:
+
+```
+ORDER CONFIRMATION
+
+Dear {{params.name}},
+
+Thank you for your order!
+
+ORDER_ID
+
+{{params.order_id}}
+
+ORDER_TEXT
+
+{{params.order_text}}
+
+If you would like to discuss this order with an agent please click the link below:
+
+{{params.url}}
+
+Thanks again!
+```
+
 ## Usage
 
 There are several steps to running the demo.
