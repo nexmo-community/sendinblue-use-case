@@ -136,7 +136,7 @@ function addMember(id, username) {
 // send email using sendinblue
 async function send_email(username, order_id, order_text, url) {
   console.log(
-    `Sending order email ${username}, ${order_id}, ${order_text}, ${url})`
+    `Sending order email ${username}, ${order_id}, ${order_text}, ${url}`
   );
   var defaultClient = SibApiV3Sdk.ApiClient.instance;
   var apiKey = defaultClient.authentications["api-key"];
