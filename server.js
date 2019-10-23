@@ -198,7 +198,7 @@ app.post("/order", async (req, res) => {
     }
   });
 
-  let url = `http://localhost:9000/chat/${username}/${conversation.uuid}/${order.id}`;
+  let url = `http://localhost:${port}/chat/${username}/${conversation.uuid}/${order.id}`;
   console.log(`Order URL: ${url}`);
   send_email(username, order.id, order.text, url);
   res.status(200).end();
