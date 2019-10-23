@@ -14,6 +14,10 @@ This code allows you to demonstrate a two way chat use case using the Client SDK
 
 3. A chat screen is loaded that contains current order data, order history, and message history). Two-way messaging can then take place between the customer and a support agent.
 
+The following diagram illustrates the overall process:
+
+![Overview](./images/overview.png "Overview")
+
 ## Installation
 
 The following assumes you have the `git` and `npm` commands available on the command line.
