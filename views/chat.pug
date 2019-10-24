@@ -4,9 +4,14 @@ html
         title= "This is the title"
     body
         h2= "Chat Screen"
+        hr
+        h3= "Current Order Details"
         p(hidden id="jwt")= jwt
+        b= "Username:" 
         p(id="username")= username
+        b= "Conversation ID:" 
         p(id="conv_id")= conv_id
+        b= "Order ID:"  
         p(id="order_id")= order_id
         hr
         h3= "Order History"

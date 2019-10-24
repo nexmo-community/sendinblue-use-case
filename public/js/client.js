@@ -15,9 +15,9 @@ function addMessage(sender, message, me) {
   const formattedDate = moment(rawDate).calendar();
   let text = "";
   if (message.from !== me.id) {
-    text = `<span style="color:red">${sender.user.name} <span style="color:red">(${formattedDate}): <b>${message.body.text}</b></span><br>`;
+    text = `<span style="color:blue">${sender.user.name} [${formattedDate}]: <b>${message.body.text}</b></span><br>`;
   } else {
-    text = `me (${formattedDate}): <b>${message.body.text}</b><br>`;
+    text = `<span style="color:green">me [${formattedDate}]: <b>${message.body.text}</b></span><br>`;
   }
   messageFeed.innerHTML = messageFeed.innerHTML + text;
 }
