@@ -4,6 +4,8 @@
 
 It is assumed you have both a Nexmo account and a Sendinblue account, and associated API keys and secrets.
 
+> **NOTE:** A full use case write up of this use case is available on the [Nexmo Developer Portal](https://developer.nexmo.com/use-cases/client-sdk-sendinblue-order-confirm).
+
 ## Overview
 
 This code allows you to demonstrate a two way chat use case using the Client SDK and Sendinblue. The scenario is as follows:
@@ -174,3 +176,10 @@ localhost:3000/chat/agent/CON-ID/ORDER-ID
 ```
 
 The user and support agent can now engage in a two-way messaging session.
+
+## References
+
+* [Write up of this use case on Nexmo Developer Portal](https://developer.nexmo.com/use-cases/client-sdk-sendinblue-order-confirm)
+* [Sendinblue](https://www.sendinblue.com/)
+* [Conversation API](https://developer.nexmo.com/conversation/overview)
+* [Client SDK](https://developer.nexmo.com/client-sdk/overview)
